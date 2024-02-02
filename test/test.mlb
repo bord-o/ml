@@ -1,0 +1,16 @@
+local 
+	ann "milletDiagnosticsIgnore true" in
+	       /usr/local/lib/mlton/sml/basis/basis.mlb
+  	end
+in
+	ml1.sml
+	ml2.sml
+	ml3.sml
+	ml4.sml
+	ml5.sml
+	ml6.sml
+	ml7.sml
+	ml8.sml
+	ml9.sml
+end
+

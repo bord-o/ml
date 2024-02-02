@@ -1,0 +1,19 @@
+local 
+
+ann "milletDiagnosticsIgnore true" in
+       /usr/local/lib/mlton/sml/basis/basis.mlb
+       /usr/local/lib/mlton/sml/mlyacc-lib/mlyacc-lib.mlb
+  
+end
+
+in
+
+ann "milletDiagnosticsIgnore true" in
+       main.grm.sig
+       main.grm.sml
+       main.lex.sml
+end	
+	ast.sml
+        main.sml
+end
+
