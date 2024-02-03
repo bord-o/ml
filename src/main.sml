@@ -86,12 +86,12 @@ end (* structure Main *)
 structure Interp =
 struct
   open Ast
+  open Util
   exception Todo
   exception NotAClosure
   exception VarUnbound
-  type env = value list
+  type env = (string, value) Dict.dict
   (* val env' : (string * int) HashTable.hash_table = HashTable.mkTable (HashString.hashString, String.compare) (1024, VarUnbound)  *)
-
 
   fun evalPrim Add (VInt a) (VInt b) =
         VInt (a + b)
@@ -101,9 +101,9 @@ struct
 
   fun eval (env: env) (term: expr) : value =
     case term of
-      Var i => List.nth (env, i)
+    Var n => Dict.find_exn n env
     | Lit i => VInt i
-    | Lam e => VClosure (fn v => eval (v :: env) e)
+    | Lam (n,e) => VClosure (fn v => eval (Util.Dict.insert n v env) e)
     | App (e1, e2) =>
         let
           val c =
@@ -116,14 +116,45 @@ struct
         end
     | Prim (op', e1, e2) => evalPrim op' (eval env e1) (eval env e2)
 
+  fun run (env:env) (program : dec list) : env =  
+    let
+      fun eval_dec (Dec (n, e)) env' = Util.Dict.insert n (eval env' e ) env'
+    in
+      foldl (fn (d, e) => eval_dec d e) env program
+    end
+
+    
+
 end
 
 
 val _ = print "Starting interpreter...\n\n"
-val program = Ast.Prim (Ast.Mul, Ast.Lit 2, Ast.Lit 2)
+val program1 = Ast.Prim (Ast.Mul, Ast.Lit 2, Ast.Lit 2)
+val program = Ast.App ((Ast.Lam ("a" , 
+                                (Ast.Prim (Ast.Add, 
+                                    Ast.Var "a", 
+                                    Ast.Lit 11 ) ))) , (Ast.Lit 2))
+
+val program = (Ast.Lam ("a" , 
+                                (Ast.Prim (Ast.Add, 
+                                    Ast.Var "a", 
+                                    Ast.Lit 11 ) )))
+
+val application_test = Ast.App (Ast.Var "sum11" , Ast.Lit 2)
+                                    
+
+val declist =  [
+  Ast.Dec ("sum11", program),
+  Ast.Dec ("ans", application_test)
+
+]
+
 val _ = (print o Ast.pp_ast) program
 val _ = print "\n\n"
-val env = []
+val env : Interp.env = Util.Dict.empty (fn a => fn b => a = b)
 val res = Interp.eval env program
 val _ = print (Ast.pp_value res)
 val _ = print "\n\n"
+val finalenv = Interp.run env declist 
+val p = Util.Dict.pp_dict Util.id Ast.pp_value finalenv
+val _ = print p

@@ -5,6 +5,7 @@ build:
 format: 
 	smlfmt --force ./src/ast.sml
 	smlfmt --force ./src/main.sml
+	smlfmt --force ./src/util.sml
 lexparse:
 	mllex ./src/main.lex
 	mlyacc ./src/main.grm

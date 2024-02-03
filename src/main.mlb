@@ -13,7 +13,8 @@ ann "milletDiagnosticsIgnore true" in
        main.grm.sml
        main.lex.sml
 end	
+	util.sml
 	ast.sml
-        main.sml
+    main.sml
 end
 
