@@ -3,6 +3,8 @@
 (* This file provides glue code for building the calculator using the
  * parser and lexer specified in calc.lex and calc.grm.
 *)
+infix 3 |>
+infixr 3 <|
 
 structure Main:
 sig
@@ -89,7 +91,7 @@ struct
   open Util
   exception Todo
   exception NotAClosure
-  exception VarUnbound
+  exception VarUnbound of string
   type env = (string, value) Dict.dict
   (* val env' : (string * int) HashTable.hash_table = HashTable.mkTable (HashString.hashString, String.compare) (1024, VarUnbound)  *)
 
@@ -101,7 +103,10 @@ struct
 
   fun eval (env: env) (term: expr) : value =
     case term of
-    Var n => Dict.find_exn n env
+    Var n => 
+      (print ("Looking up: " ^ n ^ " in env: \n" ^ (Util.Dict.pp_dict Util.id Ast.pp_value env) ^ "\n\n")
+      ; (Dict.find_exn n env handle Util.Dict.NotFound => (print ( n ^ "\n");raise VarUnbound n))
+      )
     | Lit i => VInt i
     | Lam (n,e) => VClosure (fn v => eval (Util.Dict.insert n v env) e)
     | App (e1, e2) =>
@@ -118,17 +123,43 @@ struct
 
   fun run (env:env) (program : dec list) : env =  
     let
-      fun eval_dec (Dec (n, e)) env' = Util.Dict.insert n (eval env' e ) env'
+    (* 
+      Running into errors with recursion here because the initial closure we create
+      does not have the calling recursive function in it:
+
+      env_y = environment with recursive function bound
+      env_n = env without recursive function bound
+
+      1:
+        bind recf with env_n
+      2:
+        bind ans with env_y (successfully looks up recf)      
+      3: 
+        execute closure 1 to get value for 2
+      exec:
+        FAILS on lookup for recf in 1
+    *)
+      fun eval_dec (Dec (n, e)) env' = 
+        let 
+          val newenv = Util.Dict.insert n (eval env' e) env'
+        in
+        (
+          print "\nBEFORE UPDATE\n";
+          print (Util.Dict.pp_dict Util.id Ast.pp_value env');
+          print "\nAFTER UPDATE\n";
+          print (Util.Dict.pp_dict Util.id Ast.pp_value newenv);
+          newenv
+        )
+        end
     in
-      foldl (fn (d, e) => eval_dec d e) env program
+      foldl (fn (d, e) => 
+        ((*print (Util.Dict.pp_dict Util.id Ast.pp_value e);*)  eval_dec d e)) env program
     end
-
-    
-
 end
 
 
-val _ = print "Starting interpreter...\n\n"
+val _ = print "Starting interpreter...\n"
+(*
 val program1 = Ast.Prim (Ast.Mul, Ast.Lit 2, Ast.Lit 2)
 val program = Ast.App ((Ast.Lam ("a" , 
                                 (Ast.Prim (Ast.Add, 
@@ -136,25 +167,43 @@ val program = Ast.App ((Ast.Lam ("a" ,
                                     Ast.Lit 11 ) ))) , (Ast.Lit 2))
 
 val program = (Ast.Lam ("a" , 
-                                (Ast.Prim (Ast.Add, 
-                                    Ast.Var "a", 
-                                    Ast.Lit 11 ) )))
+                        (Ast.Prim (Ast.Add, 
+                            Ast.Var "a", 
+                            Ast.Lit 11 ) )))
 
 val application_test = Ast.App (Ast.Var "sum11" , Ast.Lit 2)
-                                    
-
 val declist =  [
   Ast.Dec ("sum11", program),
   Ast.Dec ("ans", application_test)
 
 ]
+*)
+
+val program = Ast.Lam("n", 
+                     (Ast.Prim 
+                        (Ast.Add,  
+                          (Ast.App (Ast.Var "recf", Ast.Var "n")),
+                           Ast.Lit 1 )))
+val application = Ast.App (Ast.Var "recf" , Ast.Lit 0)
+
+
+val declist =  [
+  Ast.Dec ("recf", program),
+  Ast.Dec ("ans", application)
+  ]
+
 
 val _ = (print o Ast.pp_ast) program
-val _ = print "\n\n"
-val env : Interp.env = Util.Dict.empty (fn a => fn b => a = b)
-val res = Interp.eval env program
-val _ = print (Ast.pp_value res)
-val _ = print "\n\n"
+val _ = print "\n"
+(* val res = Interp.eval env program *)
+(* val _ = print (Ast.pp_value res) *)
+(* val _ = print "\n\n" *)
+open Util
+val env : Interp.env = 
+  Dict.empty op=
+  |> Dict.insert "true" (Ast.VInt 1) 
+  |> Dict.insert "false" (Ast.VInt 0) 
+
 val finalenv = Interp.run env declist 
 val p = Util.Dict.pp_dict Util.id Ast.pp_value finalenv
 val _ = print p

@@ -1,10 +1,10 @@
 structure Util =
 struct
 
-  infix 1 |>
+  infix 3 |>
   fun x |> f = f x (* Left pipe *)
 
-  infixr 1 <|
+  infixr 3 <|
   fun f <| y = f y (* Right pipe *)
 
   fun id x = x
@@ -12,7 +12,8 @@ struct
   structure Dict :>
   sig
     type ('a, 'b) dict
-    val empty : ('a -> 'a -> bool) -> ('a, 'b) dict
+    exception NotFound
+    val empty : ('a * 'a -> bool) -> ('a, 'b) dict
     val insert : 'a -> 'b -> ('a, 'b) dict -> ('a, 'b) dict
     val find : 'a -> ('a, 'b) dict -> 'b option
     val find_exn : 'a -> ('a, 'b) dict -> 'b
@@ -22,7 +23,7 @@ struct
    
   =
   struct
-    type ('a, 'b) dict = ('a -> 'a -> bool) * ('a * 'b) list
+    type ('a, 'b) dict = ('a * 'a -> bool) * ('a * 'b) list
     fun eqf (a, _) = a
     fun data (_, b) = b
     fun empty equality = (equality, [])
@@ -34,7 +35,7 @@ struct
         case data' of
           [] => (equality, [(k, v)])
         | (k', v') :: xs =>
-            if equality k k' then (equality, (k', v) :: xs)
+            if equality (k, k') then (equality, (k', v) :: xs)
             else (equality, (k', v') :: (data (insert k v (equality, xs))))
       end
     fun find (k: 'a) (d: ('a, 'b) dict) =
@@ -45,7 +46,7 @@ struct
         case data' of
           [] => NONE
         | (k', v') :: xs =>
-            if equality k k' then SOME v' else find k (equality, xs)
+            if equality (k,k') then SOME v' else find k (equality, xs)
       end
     exception NotFound
     fun find_exn (k: 'a) (d: ('a, 'b) dict) =
@@ -62,7 +63,7 @@ struct
 
 
       
-    fun streq (l: string) (r: string) : bool = l = r
+    val streq =  op=
     fun test1 () =
       let
         val d =
