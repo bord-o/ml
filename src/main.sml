@@ -96,6 +96,35 @@ struct
   type env = (string, value) Dict.dict
   (* val env' : (string * int) HashTable.hash_table = HashTable.mkTable (HashString.hashString, String.compare) (1024, VarUnbound)  *)
 
+  
+  val z = 
+    Ast.Lam ("f",
+      Ast.App (
+        Ast.Lam("x",
+          Ast.App (
+            Ast.Var "f",
+            Ast.Lam("v",
+              Ast.App(
+                (Ast.App( Ast.Var "x", Ast.Var "x")),
+                Ast.Var "v"
+              )
+            )
+          )
+        ),
+        Ast.Lam("x",
+          Ast.App (
+            Ast.Var "f",
+            Ast.Lam("v",
+              Ast.App(
+                (Ast.App ( Ast.Var "x", Ast.Var "x")),
+                Ast.Var "v"
+              )
+            )
+          )
+        )
+      )
+    )
+
   fun evalPrim Add (VInt a) (VInt b) =
         VInt (a + b)
     | evalPrim Mul (VInt a) (VInt b) =
@@ -152,9 +181,29 @@ struct
       exec:
         FAILS on lookup for recf in 1
     *)
-      fun eval_dec (Dec (n, e)) env' = 
+      (* This takes a recursive function f that is named name and makes it work with z comb*)
+      fun setup (f : Ast.expr) (name : string) = 
+        Ast.App(
+          z,
+          Ast.Lam(name,
+            f
+          )
+        )
+      fun eval_dec (Val (n, e)) env' = 
         let 
           val newenv = Util.Dict.insert n (eval env' e) env'
+        in
+        (
+          print "\nBEFORE UPDATE\n";
+          print (Util.Dict.pp_dict Util.id Ast.pp_value env');
+          print "\nAFTER UPDATE\n";
+          print (Util.Dict.pp_dict Util.id Ast.pp_value newenv);
+          newenv
+        )
+        end
+      | eval_dec (ValRec (n, e)) env' = 
+        let 
+          val newenv = Util.Dict.insert n (eval env' (setup e n)) env'
         in
         (
           print "\nBEFORE UPDATE\n";
@@ -196,43 +245,8 @@ val declist =  [
 
 ]
 *)
-val z = 
-  Ast.Lam ("f",
-    Ast.App (
-      Ast.Lam("x",
-        Ast.App (
-          Ast.Var "f",
-          Ast.Lam("v",
-            Ast.App(
-              (Ast.App( Ast.Var "x", Ast.Var "x")),
-              Ast.Var "v"
-            )
-          )
-        )
-      ),
-      Ast.Lam("x",
-        Ast.App (
-          Ast.Var "f",
-          Ast.Lam("v",
-            Ast.App(
-              (Ast.App ( Ast.Var "x", Ast.Var "x")),
-              Ast.Var "v"
-            )
-          )
-        )
-      )
-    )
-  )
 
 
-(* This takes a recursive function f that is named name and makes it work with z comb*)
-fun setup (f : Ast.expr) (name : string) = 
-  Ast.App(
-    z,
-    Ast.Lam(name,
-      f
-    )
-  )
   
 (* just the right hand side *)
 val fact = 
@@ -265,7 +279,9 @@ val fact =
 *)    
 
 val declist =  [
-   Ast.Dec ("ans", Ast.App(setup fact "fact", Ast.Lit 50)) 
+  Ast.ValRec ("fact", fact) ,
+  Ast.Val ("ans", Ast.App (Ast.Var "fact", Ast.Lit 5))
+
 ]
 
 

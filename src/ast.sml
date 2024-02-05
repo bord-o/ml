@@ -13,7 +13,8 @@ struct
   | If of expr * expr * expr
 
   datatype dec =
-    Dec of name * expr
+    Val of name * expr
+    | ValRec of name * expr
 
   datatype value = VInt of int | VClosure of (value -> value)
 
