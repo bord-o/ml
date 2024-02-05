@@ -91,6 +91,7 @@ struct
   open Util
   exception Todo
   exception NotAClosure
+  exception NotAnInt
   exception VarUnbound of string
   type env = (string, value) Dict.dict
   (* val env' : (string * int) HashTable.hash_table = HashTable.mkTable (HashString.hashString, String.compare) (1024, VarUnbound)  *)
@@ -99,6 +100,8 @@ struct
         VInt (a + b)
     | evalPrim Mul (VInt a) (VInt b) =
         VInt (a * b)
+    | evalPrim Eq (VInt a) (VInt b) =
+        VInt (if a = b then 1 else 0)
     | evalPrim _ _ _ = raise Todo
 
   fun eval (env: env) (term: expr) : value =
@@ -120,6 +123,16 @@ struct
           c v
         end
     | Prim (op', e1, e2) => evalPrim op' (eval env e1) (eval env e2)
+    | If (if',then',else') => 
+      let
+        val eval = eval env
+        val cond = 
+          case eval if' of
+          VClosure _ => raise NotAnInt
+          | VInt n => n <> 0 
+      in
+        if cond then eval then' else eval else'
+      end
 
   fun run (env:env) (program : dec list) : env =  
     let
@@ -171,6 +184,11 @@ val program = (Ast.Lam ("a" ,
                             Ast.Var "a", 
                             Ast.Lit 11 ) )))
 
+val fact = 
+    Ast.Lam("n", Ast.App 
+      (Ast.Var "fact", 
+        (Ast.Prim (Ast.Add, Ast.Lit 1, Ast.Var "n"))) )
+    
 val application_test = Ast.App (Ast.Var "sum11" , Ast.Lit 2)
 val declist =  [
   Ast.Dec ("sum11", program),
@@ -178,22 +196,80 @@ val declist =  [
 
 ]
 *)
+val z = 
+  Ast.Lam ("f",
+    Ast.App (
+      Ast.Lam("x",
+        Ast.App (
+          Ast.Var "f",
+          Ast.Lam("v",
+            Ast.App(
+              (Ast.App( Ast.Var "x", Ast.Var "x")),
+              Ast.Var "v"
+            )
+          )
+        )
+      ),
+      Ast.Lam("x",
+        Ast.App (
+          Ast.Var "f",
+          Ast.Lam("v",
+            Ast.App(
+              (Ast.App ( Ast.Var "x", Ast.Var "x")),
+              Ast.Var "v"
+            )
+          )
+        )
+      )
+    )
+  )
 
-val program = Ast.Lam("n", 
-                     (Ast.Prim 
-                        (Ast.Add,  
-                          (Ast.App (Ast.Var "recf", Ast.Var "n")),
-                           Ast.Lit 1 )))
-val application = Ast.App (Ast.Var "recf" , Ast.Lit 0)
 
+(* This takes a recursive function f that is named name and makes it work with z comb*)
+fun setup (f : Ast.expr) (name : string) = 
+  Ast.App(
+    z,
+    Ast.Lam(name,
+      f
+    )
+  )
+  
+(* just the right hand side *)
+val fact = 
+    Ast.Lam("n",
+      Ast.If (
+        Ast.Prim(
+          Ast.Eq, 
+          Ast.Var "n", 
+          Ast.Lit 0),
+        Ast.Lit 1,
+        Ast.Prim(
+          Ast.Mul,
+          Ast.Var "n",
+          Ast.App(
+            Ast.Var "fact",
+            Ast.Prim(
+              Ast.Add,
+              Ast.Lit ~1,
+              Ast.Var "n"
+            )
+          )
+        )
+      )
+    )
+
+(*
+  When we start parsing, we will have declarations: Ast.Val of string * Ast.expr
+  and Ast.ValRec of string * Ast.expr, but ValRec will use the z combinator and 
+  setup function to ensure that recursive calls work for the resulting closure
+*)    
 
 val declist =  [
-  Ast.Dec ("recf", program),
-  Ast.Dec ("ans", application)
-  ]
+   Ast.Dec ("ans", Ast.App(setup fact "fact", Ast.Lit 50)) 
+]
 
 
-val _ = (print o Ast.pp_ast) program
+val _ = (print o Ast.pp_ast) fact
 val _ = print "\n"
 (* val res = Interp.eval env program *)
 (* val _ = print (Ast.pp_value res) *)
