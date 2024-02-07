@@ -15,7 +15,7 @@ fun error (e,l : int,_) = TextIO.output (TextIO.stdOut, String.concat[
 %header (functor MainLexFun(structure Tokens: Main_TOKENS));
 alpha=[A-Za-z];
 digit=[0-9];
-ws = [t];
+ws = [\ \t];
 %%
 \n       => (pos := (!pos) + 1; lex());
 {ws}+    => (lex());
@@ -31,4 +31,5 @@ ws = [t];
 "-"      => (Tokens.SUB(!pos,!pos));
 "^"      => (Tokens.CARAT(!pos,!pos));
 "/"      => (Tokens.DIV(!pos,!pos));
-"."      => (error ("ignoring bad character "^yytext,!pos,!pos); lex());
+"."      => (error ("ignoring bad character "^yytext,!pos,!pos);
+             lex());

@@ -1,7 +1,7 @@
 (* Sample interactive calculator for ML-Yacc *)
 
-fun pp s = 
-	print s
+fun lookup "bogus" = 10000
+  | lookup s = 0
 
 %%
 
@@ -20,7 +20,7 @@ fun pp s =
       SEMI | EOF | CARAT | DIV | SUB
 %nonterm EXP of int | START of int option
 
-%name Main 
+%name Main
 
 %subst PRINT for ID
 %prefer PLUS TIMES DIV SUB

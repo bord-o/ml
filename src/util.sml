@@ -9,6 +9,15 @@ struct
 
   fun id x = x
 
+
+  fun readAllText (path: string) : string =
+    let
+      val infile = TextIO.openIn path
+      val text = TextIO.inputAll infile
+    in
+      (TextIO.closeIn infile; text)
+    end
+
   structure Dict :>
   sig
     type ('a, 'b) dict
