@@ -131,14 +131,22 @@ struct
         VInt (a * b)
     | evalPrim Eq (VInt a) (VInt b) =
         VInt (if a = b then 1 else 0)
+    | evalPrim Gt (VInt a) (VInt b) =
+        VInt (if a > b then 1 else 0)
+    | evalPrim Lt (VInt a) (VInt b) =
+        VInt (if a < b then 1 else 0)
+    | evalPrim And (VInt a) (VInt b) =
+        VInt (if a=1 andalso b=1 then 1 else 0)
+    | evalPrim Or (VInt a) (VInt b) =
+        VInt (if a=1 orelse b=1 then 1 else 0)
     | evalPrim _ _ _ = raise Todo
 
   fun eval (env: env) (term: expr) : value =
     case term of
     Var n => 
-      (print ("Looking up: " ^ n ^ " in env: \n" ^ (Util.Dict.pp_dict Util.id Ast.pp_value env) ^ "\n\n")
-      ; (Dict.find_exn n env handle Util.Dict.NotFound => (print ( n ^ "\n");raise VarUnbound n))
-      )
+      (*(print ("Looking up: " ^ n ^ " in env: \n" ^ (Util.Dict.pp_dict Util.id Ast.pp_value env) ^ "\n\n")
+      ;*) (Dict.find_exn n env handle Util.Dict.NotFound => (print ( n ^ "\n");raise VarUnbound n))
+      
     | Lit i => VInt i
     | Lam (n,e) => VClosure (fn v => eval (Util.Dict.insert n v env) e)
     | App (e1, e2) =>
@@ -194,10 +202,10 @@ struct
           val newenv = Util.Dict.insert n (eval env' e) env'
         in
         (
-          print "\nBEFORE UPDATE\n";
+          (*print "\nBEFORE UPDATE\n";
           print (Util.Dict.pp_dict Util.id Ast.pp_value env');
           print "\nAFTER UPDATE\n";
-          print (Util.Dict.pp_dict Util.id Ast.pp_value newenv);
+          print (Util.Dict.pp_dict Util.id Ast.pp_value newenv);*)
           newenv
         )
         end
@@ -206,10 +214,10 @@ struct
           val newenv = Util.Dict.insert n (eval env' (setup e n)) env'
         in
         (
-          print "\nBEFORE UPDATE\n";
+          (*print "\nBEFORE UPDATE\n";
           print (Util.Dict.pp_dict Util.id Ast.pp_value env');
           print "\nAFTER UPDATE\n";
-          print (Util.Dict.pp_dict Util.id Ast.pp_value newenv);
+          print (Util.Dict.pp_dict Util.id Ast.pp_value newenv);*)
           newenv
         )
         end
@@ -272,6 +280,46 @@ val fact =
       )
     )
 
+  val ack = 
+    Ast.Lam ("m",
+      Ast.Lam("n",
+        Ast.If(
+          Ast.Prim(Ast.Eq, Ast.Var "m", Ast.Lit 0),
+          Ast.Prim(Ast.Add, Ast.Var "n", Ast.Lit 1),
+          Ast.If(
+            Ast.Prim(Ast.And,
+              Ast.Prim(Ast.Gt, Ast.Var "m", Ast.Lit 0),
+              Ast.Prim(Ast.Eq, Ast.Var "n", Ast.Lit 0)
+            ),
+            Ast.App(
+              Ast.App(Ast.Var "ack",
+               (Ast.Prim (Ast.Add, Ast.Var "m", Ast.Lit ~1))
+              ),
+              Ast.Lit 1
+            ),
+            Ast.If(
+              Ast.Prim(Ast.And,
+                Ast.Prim(Ast.Gt, Ast.Var "m", Ast.Lit 0),
+                Ast.Prim(Ast.Gt, Ast.Var "n", Ast.Lit 0)
+              ),
+              Ast.App(
+                Ast.App(Ast.Var "ack",
+                 (Ast.Prim (Ast.Add, Ast.Var "m", Ast.Lit ~1))
+                ),
+                Ast.App(
+                  Ast.App(Ast.Var "ack",
+                    Ast.Var "m"
+                  ),
+                   (Ast.Prim (Ast.Add, Ast.Var "n", Ast.Lit ~1))
+                )
+              ),
+              Ast.Lit ~99
+            )
+          )
+        )
+      )
+    )
+
 (*
   When we start parsing, we will have declarations: Ast.Val of string * Ast.expr
   and Ast.ValRec of string * Ast.expr, but ValRec will use the z combinator and 
@@ -279,8 +327,10 @@ val fact =
 *)    
 
 val declist =  [
-  Ast.ValRec ("fact", fact) ,
-  Ast.Val ("ans", Ast.App (Ast.Var "fact", Ast.Lit 5))
+  (*Ast.ValRec ("fact", fact) ,
+  Ast.Val ("ans", Ast.App (Ast.Var "fact", Ast.Lit 5)),*)
+  Ast.ValRec ("ack", ack),
+  Ast.Val ("ans2", Ast.App(Ast.App(Ast.Var "ack", Ast.Lit 3),  Ast.Lit 12))
 
 ]
 

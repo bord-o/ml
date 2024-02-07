@@ -2,7 +2,7 @@ structure Ast =
 struct
 
   type name = string
-  datatype primop = Add | Mul | Eq
+  datatype primop = Add | Mul | Eq |Gt |Lt |And |Or
 
   datatype expr =
     Var of name
@@ -23,6 +23,10 @@ struct
       Add => "Add"
     | Mul => "Mul"
     | Eq => "Equal"
+    | Gt => "Greater than"
+    | Lt => "Less than"
+    | And => "And"
+    | Or => "Or"
 
   fun pp_value (VInt i) = Int.toString i
     | pp_value (VClosure _) = "<<closure>>"
