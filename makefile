@@ -8,6 +8,7 @@ buildopt:
 format: 
 	smlfmt --force ./src/ast.sml
 	smlfmt --force ./src/interp.sml
+	smlfmt --force ./src/interp_tests.sml
 	smlfmt --force ./src/repl.sml
 	smlfmt --force ./src/main.sml
 	smlfmt --force ./src/util.sml

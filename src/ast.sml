@@ -2,7 +2,7 @@ structure Ast =
 struct
 
   type name = string
-  datatype primop = Add | Mul | Eq |Gt |Lt |And |Or
+  datatype primop = Add | Mul | Eq | Gt | Lt | And | Or
 
   datatype expr =
     Var of name
@@ -12,9 +12,7 @@ struct
   | Prim of primop * expr * expr
   | If of expr * expr * expr
 
-  datatype dec =
-    Val of name * expr
-    | ValRec of name * expr
+  datatype dec = Val of name * expr | ValRec of name * expr
 
   datatype value = VInt of int | VClosure of (value -> value)
 
@@ -34,13 +32,14 @@ struct
   fun pp_ast a =
     case a of
       Var n => (" Var " ^ n)
-    | Lam (n,e) => (" Lam " ^ n ^ (pp_ast e))
+    | Lam (n, e) => (" Lam " ^ n ^ (pp_ast e))
     | App (e1, e2) => (" App " ^ (pp_ast e1) ^ ", " ^ (pp_ast e2))
     | Lit i => (" Lit " ^ (Int.toString i))
     | Prim (op', e1, e2) =>
         (" Prim " ^ (pp_op op') ^ " " ^ (pp_ast e1) ^ ", " ^ (pp_ast e2))
-    | If (if',then',else') =>
-        (" If: " ^ (pp_ast if') ^ " Then: " ^(pp_ast then')^ " Else: " ^ (pp_ast else'))
+    | If (if', then', else') =>
+        (" If: " ^ (pp_ast if') ^ " Then: " ^ (pp_ast then') ^ " Else: "
+         ^ (pp_ast else'))
 
-        
+
 end

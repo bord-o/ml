@@ -13,15 +13,13 @@ struct
   sig
     type ('a, 'b) dict
     exception NotFound
-    val empty : ('a * 'a -> bool) -> ('a, 'b) dict
-    val insert : 'a -> 'b -> ('a, 'b) dict -> ('a, 'b) dict
-    val find : 'a -> ('a, 'b) dict -> 'b option
-    val find_exn : 'a -> ('a, 'b) dict -> 'b
+    val empty: ('a * 'a -> bool) -> ('a, 'b) dict
+    val insert: 'a -> 'b -> ('a, 'b) dict -> ('a, 'b) dict
+    val find: 'a -> ('a, 'b) dict -> 'b option
+    val find_exn: 'a -> ('a, 'b) dict -> 'b
     (*format keys and values given a formatter for keys, and formatter for values*)
-    val pp_dict : ('a -> string) -> ('b -> string) -> ('a, 'b) dict -> string
-  end
-   
-  =
+    val pp_dict: ('a -> string) -> ('b -> string) -> ('a, 'b) dict -> string
+  end =
   struct
     type ('a, 'b) dict = ('a * 'a -> bool) * ('a * 'b) list
     fun eqf (a, _) = a
@@ -46,7 +44,7 @@ struct
         case data' of
           [] => NONE
         | (k', v') :: xs =>
-            if equality (k,k') then SOME v' else find k (equality, xs)
+            if equality (k, k') then SOME v' else find k (equality, xs)
       end
     exception NotFound
     fun find_exn (k: 'a) (d: ('a, 'b) dict) =
@@ -54,16 +52,18 @@ struct
         SOME v => v
       | NONE => raise NotFound
 
-    fun pp_dict kf vf d = 
-      let 
+    fun pp_dict kf vf d =
+      let
         val data' = data d
       in
-        foldl (fn ((key, value), state) => state ^ "KEY: " ^ (kf key) ^  ", VALUE: " ^ (vf value) ^ "\n") "" data'
+        foldl
+          (fn ((key, value), state) =>
+             state ^ "KEY: " ^ (kf key) ^ ", VALUE: " ^ (vf value) ^ "\n") ""
+          data'
       end
 
 
-      
-    val streq =  op=
+    val streq = op=
     fun test1 () =
       let
         val d =

@@ -16,6 +16,7 @@ end
 	util.sml
 	ast.sml
 	interp.sml
+	interp_tests.sml
 	repl.sml
     main.sml
 end

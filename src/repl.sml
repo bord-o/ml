@@ -1,4 +1,3 @@
-
 structure Repl:
 sig
   val readAllText: string -> string
