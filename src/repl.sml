@@ -55,17 +55,13 @@ struct
           SOME s => s
         | _ => "")
       val dummyEOF = MainLrVals.Tokens.EOF (0, 0)
-      val dummySEMI = MainLrVals.Tokens.SEMI (0, 0)
       fun loop lexer =
         let
           val (result, lexer) = invoke lexer
           val (nextToken, lexer) = MainParser.Stream.get lexer
           val _ =
-            case result of
-              SOME r =>
                 TextIO.output
-                  (TextIO.stdOut, "result = " ^ (Int.toString r) ^ "\n")
-            | NONE => ()
+                  (TextIO.stdOut, "result = " ^ (Ast.pp_ast result) ^ "\n")
         in
           if MainParser.sameToken (nextToken, dummyEOF) then () else loop lexer
         end

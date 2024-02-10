@@ -16,20 +16,35 @@ fun error (e,l : int,_) = TextIO.output (TextIO.stdOut, String.concat[
 alpha=[A-Za-z];
 digit=[0-9];
 ws = [\ \t];
+any=.;
+ident=[A-Za-z]+;  
+
 %%
+
 \n       => (pos := (!pos) + 1; lex());
 {ws}+    => (lex());
-{digit}+ => (Tokens.NUM (valOf (Int.fromString yytext), !pos, !pos));
 
+
+"let" => (Tokens.LET(!pos,!pos));
+"val" => (Tokens.VAL(!pos,!pos));
+"rec" => (Tokens.REC(!pos,!pos));
+"if" => (Tokens.IF(!pos,!pos));
+"then" => (Tokens.THEN(!pos,!pos));
+"else" => (Tokens.ELSE(!pos,!pos));
+"fn" => (Tokens.FN(!pos,!pos));
+"=>" => (Tokens.ARROW(!pos,!pos));
+"=" => (Tokens.ASSIGN(!pos,!pos));
+">" => (Tokens.GT(!pos,!pos));
+"<" => (Tokens.LT(!pos,!pos));
+"(" => (Tokens.OPAREN(!pos,!pos));
+")" => (Tokens.CPAREN(!pos,!pos));
 "+"      => (Tokens.PLUS(!pos,!pos));
 "*"      => (Tokens.TIMES(!pos,!pos));
-";"      => (Tokens.SEMI(!pos,!pos));
-{alpha}+ => (if yytext="print"
-                 then Tokens.PRINT(!pos,!pos)
-                 else Tokens.ID(yytext,!pos,!pos)
-            );
 "-"      => (Tokens.SUB(!pos,!pos));
-"^"      => (Tokens.CARAT(!pos,!pos));
 "/"      => (Tokens.DIV(!pos,!pos));
-"."      => (error ("ignoring bad character "^yytext,!pos,!pos);
-             lex());
+
+{digit}+=> (Tokens.NUM (valOf (Int.fromString yytext), !pos, !pos));
+{alpha} => (Tokens.ID(yytext,!pos,!pos));
+
+{any} => (error ("Bad character "^yytext,!pos,!pos);
+             (raise (Fail "LexError")));

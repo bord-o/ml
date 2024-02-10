@@ -5,7 +5,7 @@ fun lookup "bogus" = 10000
 
 %%
 
-%eop EOF SEMI
+%eop EOF
 
 (* %pos declares the type of positions for terminals.
    Each symbol has an associated left and right position. *)
@@ -14,37 +14,41 @@ fun lookup "bogus" = 10000
 
 %left SUB PLUS
 %left TIMES DIV
-%right CARAT
 
-%term ID of string | NUM of int | PLUS | TIMES | PRINT |
-      SEMI | EOF | CARAT | DIV | SUB
-%nonterm EXP of int | START of int option
+%term FN | ARROW | LET | VAL | ASSIGN | REC | IF | THEN | ELSE |
+      OPAREN | CPAREN | EOF | ID of string | NUM of int |
+
+      PLUS | SUB | DIV | TIMES | GT | LT
+
+
+
+%nonterm EXP of Ast.expr | PROG of Ast.expr
 
 %name Main
 
-%subst PRINT for ID
 %prefer PLUS TIMES DIV SUB
-%keyword PRINT SEMI
 
 %noshift EOF
-%value ID ("bogus")
 %verbose
 %%
 
 (* the parser returns the value associated with the expression *)
+PROG:
+  EXP EOF (EXP)
 
-  START : PRINT EXP (print (Int.toString EXP);
-                     print "\n";
-                     SOME EXP)
-        | EXP (SOME EXP)
-        | (NONE)
-  EXP : NUM             (NUM)
-      | ID              (lookup ID)
-      | EXP PLUS EXP    (EXP1+EXP2)
-      | EXP TIMES EXP   (EXP1*EXP2)
-      | EXP DIV EXP     (EXP1 div EXP2)
-      | EXP SUB EXP     (EXP1-EXP2)
-      | EXP CARAT EXP   (let fun e (m,0) = 1
-                                | e (m,l) = m*e(m,l-1)
-                         in e (EXP1,EXP2)
-                         end)
+EXP : 
+  FN ID ARROW EXP (Ast.Lam (ID, EXP))
+  | EXP EXP (Ast.App (EXP1, EXP2))
+  | NUM  (Ast.Lit NUM)
+  | EXP PLUS EXP (Ast.Prim (Ast.Add,  EXP1, EXP2))
+  | EXP TIMES EXP (Ast.Prim (Ast.Add,  EXP1, EXP2))
+  | EXP DIV EXP (Ast.Prim (Ast.Add,  EXP1, EXP2))
+  | EXP SUB EXP (Ast.Prim (Ast.Add,  EXP1, EXP2))
+
+  | EXP GT EXP (Ast.Prim (Ast.Gt,  EXP1, EXP2))
+  | EXP LT EXP (Ast.Prim (Ast.Lt,  EXP1, EXP2))
+  | EXP ASSIGN EXP (Ast.Lit 99)
+
+  | IF EXP THEN EXP ELSE EXP (Ast.Lit 99)
+
+  | ID (Ast.Var ID)

@@ -1,3 +1,4 @@
+
 run: build
 	chmod +x ./_build/main && cd ./_build && ./main
 
