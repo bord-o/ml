@@ -1,8 +1,5 @@
 (* Sample interactive calculator for ML-Yacc *)
 
-fun lookup "bogus" = 10000
-  | lookup s = 0
-
 %%
 
 %eop EOF
@@ -47,8 +44,15 @@ DECLIST :
   DEC DECLIST (DEC :: DECLIST)
   | DEC ([DEC])
 
-EXP : 
-  EXP EXP %prec APPLICATION (Ast.App (EXP1, EXP2))
+EXP :
+  APPEXP()
+  ATOMEXP()
+  
+APPEXP :
+  ATOMEXP APPEXP ()
+  ATOMEXP()
+
+ATOMEXP : 
   | FN ID ARROW EXP %prec LAMBDA (Ast.Lam (ID, EXP))
   | OPAREN EXPLIST CPAREN (List.last EXPLIST)
   | NUM  (Ast.Lit NUM)
@@ -71,4 +75,5 @@ EXP :
 EXPLIST :
   EXP SEMI EXPLIST (EXP :: EXPLIST) 
   | EXP ([EXP])
+
 

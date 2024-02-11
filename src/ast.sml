@@ -28,6 +28,9 @@ struct
     | And => "And"
     | Or => "Or"
 
+  fun apply (l : expr list): expr = 
+    raise (Fail "todo: apply list")
+
   fun pp_value (VInt i) = Int.toString i
     | pp_value (VClosure _) = "<<closure>>"
  
