@@ -61,7 +61,7 @@ struct
           val (nextToken, lexer) = MainParser.Stream.get lexer
           val _ =
                 TextIO.output
-                  (TextIO.stdOut, "result = " ^ (Ast.pp_ast result) ^ "\n")
+                  (TextIO.stdOut, "result = " ^ (Ast.pp_declist result) ^ "\n")
         in
           if MainParser.sameToken (nextToken, dummyEOF) then () else loop lexer
         end

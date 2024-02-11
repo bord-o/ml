@@ -44,8 +44,8 @@ ident=[A-Za-z]+;
 "/"      => (Tokens.DIV(!pos,!pos));
 ";"      => (Tokens.SEMI(!pos,!pos));
 
+[a-zA-Z][a-zA-Z0-9]*  => (Tokens.ID(yytext,!pos,!pos));
 {digit}+=> (Tokens.NUM (valOf (Int.fromString yytext), !pos, !pos));
-{alpha} => (Tokens.ID(yytext,!pos,!pos));
 
 {any} => (error ("Bad character "^yytext,!pos,!pos);
              (raise (Fail "LexError")));

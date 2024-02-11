@@ -22,16 +22,26 @@ fun lookup "bogus" = 10000
 %left PLUS SUB TIMES DIV LT GT 
 %right IF ASSIGN ID OPAREN NUM
 
-%nonterm EXPLIST of Ast.expr list | EXP of Ast.expr | PROG of Ast.expr
+%nonterm DEC of Ast.dec | DECLIST of Ast.dec list | EXPLIST of Ast.expr list 
+  | EXP of Ast.expr | PROG of Ast.dec list
 
 %name Main
 
+%noshift EOF
 %verbose
 %%
 
 (* the parser returns the value associated with the expression *)
 PROG:
-  EXP EOF (EXP)
+  DECLIST EOF (DECLIST)
+
+DEC :
+  VAL ID ASSIGN EXP (Ast.Val(ID, EXP))
+  | VAL REC ID ASSIGN EXP (Ast.Val(ID, EXP))
+
+DECLIST :
+  DECLIST DEC (DEC :: DECLIST)
+  | DEC ([DEC])
 
 EXP : 
   FN ID ARROW EXP %prec LAMBDA (Ast.Lam (ID, EXP))

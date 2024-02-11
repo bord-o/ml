@@ -28,6 +28,7 @@ struct
 
   fun pp_value (VInt i) = Int.toString i
     | pp_value (VClosure _) = "<<closure>>"
+ 
 
   fun pp_ast ast =
     let
@@ -53,5 +54,14 @@ struct
       aux ast 0
     end
 
+  fun pp_declist (l: dec list) =
+    let
+      fun printer (d : dec) = 
+        case d of
+        Val (n, e) => ("\nVAL: " ^ n ^ pp_ast e)
+        | ValRec (n, e) => ("\nVAL REC" ^ n ^  pp_ast e)
+    in
+      foldl (fn (item,state) => (printer item) ^ state) "" l
+    end
 
 end
