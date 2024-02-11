@@ -3,10 +3,13 @@
 (* This file provides glue code for building the calculator using the
  * parser and lexer specified in calc.lex and calc.grm.
 *)
+open Util
+infix 3 |>
+infixr 3 <|
 
 structure Repl:
 sig
-  val parse: string -> unit
+  val parse: string -> Ast.dec list
 end =
 struct
 
@@ -59,11 +62,8 @@ struct
         let
           val (result, lexer) = invoke lexer
           val (nextToken, lexer) = MainParser.Stream.get lexer
-          val _ =
-                TextIO.output
-                  (TextIO.stdOut, "result = " ^ (Ast.pp_declist result) ^ "\n")
         in
-          if MainParser.sameToken (nextToken, dummyEOF) then () else loop lexer
+          if MainParser.sameToken (nextToken, dummyEOF) then result else loop lexer
         end
     in
       loop lexer

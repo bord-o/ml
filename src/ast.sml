@@ -2,7 +2,7 @@ structure Ast =
 struct
 
   type name = string
-  datatype primop = Add | Mul | Eq | Gt | Lt | And | Or
+  datatype primop = Add | Mul | Div | Sub | Eq | Gt | Lt | And | Or
 
   datatype expr =
     Var of name
@@ -20,6 +20,8 @@ struct
     case o' of
       Add => "Add"
     | Mul => "Mul"
+    | Div => "Div"
+    | Sub => "Sub"
     | Eq => "Equal"
     | Gt => "Greater than"
     | Lt => "Less than"
@@ -61,7 +63,7 @@ struct
         Val (n, e) => ("\nVAL: " ^ n ^ pp_ast e)
         | ValRec (n, e) => ("\nVAL REC" ^ n ^  pp_ast e)
     in
-      foldl (fn (item,state) => (printer item) ^ state) "" l
+      foldr (fn (item,state) => (printer item) ^ state) "" l
     end
 
 end

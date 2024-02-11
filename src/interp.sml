@@ -3,7 +3,7 @@ struct
   open Ast
   open Util
   exception Todo
-  exception NotAClosure
+  exception NotAClosure of string
   exception NotAnInt
   exception VarUnbound of string
   type env = (string, value) Dict.dict
@@ -25,6 +25,10 @@ struct
         VInt (a + b)
     | evalPrim Mul (VInt a) (VInt b) =
         VInt (a * b)
+    | evalPrim Sub (VInt a) (VInt b) =
+        VInt (a - b)
+    | evalPrim Div (VInt a) (VInt b) =
+        if b = 0 then VInt 0 else VInt (Int.div (a,b))
     | evalPrim Eq (VInt a) (VInt b) =
         VInt (if a = b then 1 else 0)
     | evalPrim Gt (VInt a) (VInt b) =
@@ -52,7 +56,7 @@ struct
           val c =
             case eval env e1 of
               VClosure c => c
-            | _ => raise NotAClosure
+            | _ => raise (NotAClosure (Ast.pp_ast e1))
           val v = eval env e2
         in
           c v
@@ -103,7 +107,7 @@ struct
             let
               val newenv = Util.Dict.insert n (eval env' (setup e n)) env'
             in
-              ( (*print "\nBEFORE UPDATE\n";
+              ( (* print "\nBEFORE UPDATE\n";
                 print (Util.Dict.pp_dict Util.id Ast.pp_value env');
                 print "\nAFTER UPDATE\n";
                 print (Util.Dict.pp_dict Util.id Ast.pp_value newenv);*)newenv)
