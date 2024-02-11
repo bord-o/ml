@@ -42,6 +42,7 @@ ident=[A-Za-z]+;
 "*"      => (Tokens.TIMES(!pos,!pos));
 "-"      => (Tokens.SUB(!pos,!pos));
 "/"      => (Tokens.DIV(!pos,!pos));
+";"      => (Tokens.SEMI(!pos,!pos));
 
 {digit}+=> (Tokens.NUM (valOf (Int.fromString yytext), !pos, !pos));
 {alpha} => (Tokens.ID(yytext,!pos,!pos));

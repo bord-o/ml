@@ -12,23 +12,20 @@ fun lookup "bogus" = 10000
 
 %pos int
 
-%left SUB PLUS
-%left TIMES DIV
-
 %term FN | ARROW | LET | VAL | ASSIGN | REC | IF | THEN | ELSE |
       OPAREN | CPAREN | EOF | ID of string | NUM of int |
+      PLUS | SUB | DIV | TIMES | GT | LT | SEMI | APPLICATION | LAMBDA
 
-      PLUS | SUB | DIV | TIMES | GT | LT
+%left APPLICATION
+%left LAMBDA
+%left ELSE FN
+%left PLUS SUB TIMES DIV LT GT 
+%right IF ASSIGN ID OPAREN NUM
 
-
-
-%nonterm EXP of Ast.expr | PROG of Ast.expr
+%nonterm EXPLIST of Ast.expr list | EXP of Ast.expr | PROG of Ast.expr
 
 %name Main
 
-%prefer PLUS TIMES DIV SUB
-
-%noshift EOF
 %verbose
 %%
 
@@ -37,8 +34,9 @@ PROG:
   EXP EOF (EXP)
 
 EXP : 
-  FN ID ARROW EXP (Ast.Lam (ID, EXP))
-  | EXP EXP (Ast.App (EXP1, EXP2))
+  FN ID ARROW EXP %prec LAMBDA (Ast.Lam (ID, EXP))
+  | EXP EXP %prec APPLICATION (Ast.App (EXP1, EXP2))
+  | OPAREN EXPLIST CPAREN (List.last EXPLIST)
   | NUM  (Ast.Lit NUM)
   | EXP PLUS EXP (Ast.Prim (Ast.Add,  EXP1, EXP2))
   | EXP TIMES EXP (Ast.Prim (Ast.Add,  EXP1, EXP2))
@@ -47,8 +45,13 @@ EXP :
 
   | EXP GT EXP (Ast.Prim (Ast.Gt,  EXP1, EXP2))
   | EXP LT EXP (Ast.Prim (Ast.Lt,  EXP1, EXP2))
-  | EXP ASSIGN EXP (Ast.Lit 99)
+  | EXP ASSIGN EXP (Ast.Prim (Ast.Eq, EXP1, EXP2))
 
-  | IF EXP THEN EXP ELSE EXP (Ast.Lit 99)
+  | IF EXP THEN EXP ELSE EXP (Ast.If(EXP1, EXP2, EXP3))
 
   | ID (Ast.Var ID)
+
+EXPLIST :
+  EXP SEMI EXPLIST (EXP :: EXPLIST) 
+  | EXP ([EXP])
+

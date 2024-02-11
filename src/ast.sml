@@ -29,17 +29,29 @@ struct
   fun pp_value (VInt i) = Int.toString i
     | pp_value (VClosure _) = "<<closure>>"
 
-  fun pp_ast a =
-    case a of
-      Var n => (" Var " ^ n)
-    | Lam (n, e) => (" Lam " ^ n ^ (pp_ast e))
-    | App (e1, e2) => (" App " ^ (pp_ast e1) ^ ", " ^ (pp_ast e2))
-    | Lit i => (" Lit " ^ (Int.toString i))
-    | Prim (op', e1, e2) =>
-        (" Prim " ^ (pp_op op') ^ " " ^ (pp_ast e1) ^ ", " ^ (pp_ast e2))
-    | If (if', then', else') =>
-        (" If: " ^ (pp_ast if') ^ " Then: " ^ (pp_ast then') ^ " Else: "
-         ^ (pp_ast else'))
+  fun pp_ast ast =
+    let
+      fun tabs n =
+        foldl (fn (item, state) => item ^ state ) "" (List.tabulate (n, fn _ => "\t"))
+        
+      fun aux a i = 
+        let
+          val indent = "\n" ^ tabs i
+        in
+          indent ^
+          (case a of
+            Var n => (" Var " ^ n)
+          | Lam (n, e) => (" Lam " ^ n ^ (aux e (i+1)))
+          | App (e1, e2) => (" App " ^ (aux e1 (i+1)) ^ ", " ^ (aux e2 (i+1)))
+          | Lit i' => (" Lit " ^ (Int.toString i' ))
+          | Prim (op', e1, e2) =>
+              (" Prim " ^ (pp_op op') ^ " " ^ (aux e1 (i+1)) ^ ", " ^ (aux e2 (i+1)))
+          | If (if', then', else') =>
+              (" If: " ^ (aux if' (i+1)) ^  (aux then' (i+1)) ^ (aux else' (i+1))))
+        end
+    in
+      aux ast 0
+    end
 
 
 end
