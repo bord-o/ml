@@ -43,8 +43,8 @@ ident=[A-Za-z]+;
 "-"      => (Tokens.SUB(!pos,!pos));
 "/"      => (Tokens.DIV(!pos,!pos));
 ";"      => (Tokens.SEMI(!pos,!pos));
-"&&"      => (Tokens.AND(!pos,!pos));
-"||"      => (Tokens.OR(!pos,!pos));
+"andalso"      => (Tokens.AND(!pos,!pos));
+"orelse"      => (Tokens.OR(!pos,!pos));
 
 [a-zA-Z][a-zA-Z0-9]*  => (Tokens.ID(yytext,!pos,!pos));
 {digit}+=> (Tokens.NUM (valOf (Int.fromString yytext), !pos, !pos));

@@ -11,20 +11,22 @@
 
 %term FN | ARROW | LET | VAL | ASSIGN | REC | IF | THEN | ELSE |
       OPAREN | CPAREN | EOF | ID of string | NUM of int |
-      PLUS | SUB | DIV | TIMES | GT | LT | AND | OR | SEMI | APPLICATION | LAMBDA
+      PLUS | SUB | DIV | TIMES | GT | LT | AND | OR | SEMI | APPLICATION | LAMBDA |  ASSIGNMENT
 
 %left APPLICATION
 %left LAMBDA
 %left ELSE FN
-%right IF ASSIGN ID OPAREN NUM
+%right IF ASSIGNMENT ID OPAREN NUM
 
+%left AND
+%left OR
 %left TIMES DIV
 %left PLUS SUB 
-%left LT GT
-%left AND OR
+%left LT GT ASSIGN
 
 %nonterm DEC of Ast.dec | DECLIST of Ast.dec list | EXPLIST of Ast.expr list 
-  | EXP of Ast.expr | PROG of Ast.dec list
+  | EXP of Ast.expr | PROG of Ast.dec list | OPER of Ast.expr | APP of Ast.expr
+  | NONAPP of Ast.expr
 
 %name Main
 
@@ -37,20 +39,32 @@ PROG:
   DECLIST EOF (DECLIST)
 
 DEC :
-  VAL ID ASSIGN EXP (Ast.Val(ID, EXP))
-  | VAL REC ID ASSIGN EXP (Ast.ValRec(ID, EXP))
+  VAL ID ASSIGN EXP %prec ASSIGNMENT  (Ast.Val(ID, EXP))
+  | VAL REC ID ASSIGN EXP %prec ASSIGNMENT (Ast.ValRec(ID, EXP))
 
 DECLIST :
   DEC DECLIST (DEC :: DECLIST)
   | DEC ([DEC])
 
-
 EXP : 
-  EXP EXP %prec APPLICATION (Ast.App(EXP1,EXP2))
+  NONAPP (NONAPP)
+  | APP (APP)
+  | OPER (OPER)
   | FN ID ARROW EXP %prec LAMBDA (Ast.Lam (ID, EXP))
-  | OPAREN EXPLIST CPAREN (List.last EXPLIST)
+  | IF EXP THEN EXP ELSE EXP (Ast.If(EXP1, EXP2, EXP3))
+
+APP:
+  APP NONAPP (Ast.App(APP, NONAPP))
+  | NONAPP NONAPP (Ast.App(NONAPP1, NONAPP2))
+
+NONAPP :
+  ID (Ast.Var ID)
   | NUM  (Ast.Lit NUM)
-  | EXP PLUS EXP (Ast.Prim (Ast.Add,  EXP1, EXP2))
+  | OPAREN EXPLIST CPAREN (List.last EXPLIST)
+
+
+OPER:
+  EXP PLUS EXP (Ast.Prim (Ast.Add,  EXP1, EXP2))
   | EXP TIMES EXP (Ast.Prim (Ast.Mul,  EXP1, EXP2))
   | EXP DIV EXP (Ast.Prim (Ast.Div,  EXP1, EXP2))
   | EXP SUB EXP (Ast.Prim (Ast.Sub,  EXP1, EXP2))
@@ -60,14 +74,9 @@ EXP :
 
   | EXP GT EXP (Ast.Prim (Ast.Gt,  EXP1, EXP2))
   | EXP LT EXP (Ast.Prim (Ast.Lt,  EXP1, EXP2))
-  | EXP ASSIGN EXP (Ast.Prim (Ast.Eq, EXP1, EXP2))
-
-  | IF EXP THEN EXP ELSE EXP (Ast.If(EXP1, EXP2, EXP3))
-
-  | ID (Ast.Var ID)
+  | EXP ASSIGN EXP  (Ast.Prim (Ast.Eq, EXP1, EXP2))
+  
 
 EXPLIST :
   EXP SEMI EXPLIST (EXP :: EXPLIST) 
   | EXP ([EXP])
-
-

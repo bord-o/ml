@@ -10,7 +10,7 @@ val start_env= (Dict.empty op=)
 val _ = Dict.pp_dict id Ast.pp_value start_env |> print
 
 val ast = 
-    Repl.parse "/home/bordo/ml/test/test.calc"
+    Repl.parse "/home/bordo/ml/test/ack.sml"
     handle
     Interp.NotAClosure s => (print ("\n\n" ^ s ^ "\n\n"); raise Interp.NotAClosure s)
 

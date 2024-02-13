@@ -1,3 +1,4 @@
 val rec test = fn arg1 => fn arg2 => fn arg3 => arg1 + arg2 + arg3
 
-val res = test 1 2 3
+val explicit = (((test 1) 2) 3)
+val implicit = test 1 2 3
