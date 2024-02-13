@@ -9,7 +9,7 @@
 
 %pos int
 
-%term FN | ARROW | LET | VAL | ASSIGN | REC | IF | THEN | ELSE |
+%term FN | ARROW | LET | IN | END | VAL | ASSIGN | REC | IF | THEN | ELSE |
       OPAREN | CPAREN | EOF | ID of string | NUM of int |
       PLUS | SUB | DIV | TIMES | GT | LT | AND | OR | SEMI | APPLICATION | LAMBDA |  ASSIGNMENT
 
@@ -20,8 +20,8 @@
 
 %left AND
 %left OR
-%left TIMES DIV
 %left PLUS SUB 
+%left TIMES DIV
 %left LT GT ASSIGN
 
 %nonterm DEC of Ast.dec | DECLIST of Ast.dec list | EXPLIST of Ast.expr list 
@@ -52,6 +52,7 @@ EXP :
   | OPER (OPER)
   | FN ID ARROW EXP %prec LAMBDA (Ast.Lam (ID, EXP))
   | IF EXP THEN EXP ELSE EXP (Ast.If(EXP1, EXP2, EXP3))
+  | LET DECLIST IN EXP END (Ast.Let(DECLIST, EXP))
 
 APP:
   APP NONAPP (Ast.App(APP, NONAPP))

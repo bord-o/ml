@@ -26,6 +26,8 @@ ident=[A-Za-z]+;
 
 
 "let" => (Tokens.LET(!pos,!pos));
+"in" => (Tokens.IN(!pos,!pos));
+"end" => (Tokens.END(!pos,!pos));
 "val" => (Tokens.VAL(!pos,!pos));
 "rec" => (Tokens.REC(!pos,!pos));
 "if" => (Tokens.IF(!pos,!pos));

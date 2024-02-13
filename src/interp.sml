@@ -56,7 +56,7 @@ struct
           val c =
             case eval env e1 of
               VClosure c => c
-            | _ => raise (NotAClosure (Ast.pp_ast e1))
+            | _ => raise (NotAClosure (Ast.pp_ast e1 0))
           val v = eval env e2
         in
           c v
@@ -73,7 +73,9 @@ struct
           if cond then eval then' else eval else'
         end
 
-  fun run (env: env) (program: dec list) : env =
+    | Let (decs, e) => eval (run env decs) e
+
+  and run (env: env) (program: dec list) : env =
     let
       (* 
         Running into errors with recursion here because the initial closure we create
