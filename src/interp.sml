@@ -77,22 +77,6 @@ struct
 
   and run (env: env) (program: dec list) : env =
     let
-      (* 
-        Running into errors with recursion here because the initial closure we create
-        does not have the calling recursive function in it:
-      
-        env_y = environment with recursive function bound
-        env_n = env without recursive function bound
-      
-        1:
-          bind recf with env_n
-        2:
-          bind ans with env_y (successfully looks up recf)      
-        3: 
-          execute closure 1 to get value for 2
-        exec:
-          FAILS on lookup for recf in 1
-      *)
       (* This takes a recursive function f that is named name and makes it work with z comb*)
       fun setup (f: Ast.expr) (name: string) =
         Ast.App (z, Ast.Lam (name, f))
